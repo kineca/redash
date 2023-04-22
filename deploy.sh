@@ -46,13 +46,15 @@ docker build --progress=plain -t $REGION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY_
 docker push $REGION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY_NAME/redash:latest
 
 # Deploy Redash service to Cloud Run
-gcloud run deploy redash \
+gcloud beta run deploy redash \
     --image asia-northeast1-docker.pkg.dev/cabakuru-analytics/redash/redash:latest \
     --platform managed \
     --use-http2 \
     --region $REGION \
     --port 5000 \
     --allow-unauthenticated \
+    --execution-environment=gen2 \
+    --timeout=120 \
     --set-env-vars "REDIS_URL=$REDIS_URL,REDASH_COOKIE_SECRET=$REDASH_COOKIE_SECRET,REDASH_DATABASE_URL=$REDASH_DATABASE_URL" \
     --service-account ${SERVICE_ACCOUNT} \
     --vpc-connector $VPC_CONNECTOR \
