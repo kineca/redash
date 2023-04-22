@@ -24,6 +24,7 @@ REDIS_PRIVATE_IP=$(gcloud redis instances describe $REDIS_INSTANCE_NAME --region
 
 REDIS_URL="redis://$REDIS_PRIVATE_IP:6379/0"
 REDASH_DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${CLOUD_SQL_PRIVATE_IP}:5432/${POSTGRES_DB}"
+REDASH_LOG_LEVEL=DEBUG
 
 # Enable required services
 gcloud services enable run.googleapis.com
@@ -55,9 +56,10 @@ gcloud beta run deploy redash \
     --allow-unauthenticated \
     --execution-environment=gen2 \
     --timeout=120 \
-    --set-env-vars "REDIS_URL=$REDIS_URL,REDASH_COOKIE_SECRET=$REDASH_COOKIE_SECRET,REDASH_DATABASE_URL=$REDASH_DATABASE_URL" \
+    --set-env-vars "REDIS_URL=$REDIS_URL,REDASH_COOKIE_SECRET=$REDASH_COOKIE_SECRET,REDASH_DATABASE_URL=$REDASH_DATABASE_URL,REDASH_LOG_LEVEL=${REDASH_LOG_LEVEL}" \
     --service-account ${SERVICE_ACCOUNT} \
     --vpc-connector $VPC_CONNECTOR \
-    --memory 2Gi
+    --cpu 4 \
+    --memory 4Gi
 
-gcloud beta run domain-mappings create --service redash --domain redash.pato.today --region $REGION
+#gcloud beta run domain-mappings create --service redash --domain redash.pato.today --region $REGION
