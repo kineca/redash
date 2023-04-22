@@ -24,7 +24,7 @@ REDIS_PRIVATE_IP=$(gcloud redis instances describe $REDIS_INSTANCE_NAME --region
 
 REDIS_URL="redis://$REDIS_PRIVATE_IP:6379/0"
 REDASH_DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${CLOUD_SQL_PRIVATE_IP}:5432/${POSTGRES_DB}"
-REDASH_LOG_LEVEL=DEBUG
+REDASH_LOG_LEVEL=INFO
 
 # Enable required services
 gcloud services enable run.googleapis.com
@@ -50,7 +50,6 @@ docker push $REGION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY_NAME/redash:latest
 gcloud beta run deploy redash \
     --image asia-northeast1-docker.pkg.dev/cabakuru-analytics/redash/redash:latest \
     --platform managed \
-    --use-http2 \
     --region $REGION \
     --port 5000 \
     --allow-unauthenticated \
