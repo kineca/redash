@@ -1,4 +1,12 @@
-version: 2.0
+version: 2.1
+
+executors:
+  google-sdk:
+    docker:
+      - image: google/cloud-sdk:427.0.0
+    environment:
+      DOCKER_CLI_EXPERIMENTAL: enabled
+      DOCKER_BUILDKIT: 1
 
 build-docker-image-job: &build-docker-image-job
   docker:
@@ -139,6 +147,87 @@ jobs:
           path: coverage
   build-docker-image: *build-docker-image-job
   build-preview-docker-image: *build-docker-image-job
+
+  build_image:
+    executor: google-sdk
+    steps:
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - checkout
+      - run:
+          name: auth
+          command: |
+            set -x
+            touch $BASH_ENV
+            source $BASH_ENV
+
+            # CircleCIに対して割り当てられた認証情報でgclodコマンドを叩く
+            echo ${CIRCLE_OIDC_TOKEN} > .cci.token
+
+            export GCP_PROJECT_ID=cabakuru-analytics
+            export GCP_PROJECT_NUMBER=791369243901
+
+            export SERVICE_ACCOUNT_NAME=cci-oidc-${CIRCLE_PROJECT_REPONAME:-x}@${GCP_PROJECT_ID}.iam.gserviceaccount.com
+            export WORKLOAD_IDENTITY_POOL_NAME=pool-cci
+            export WORKLOAD_IDENTITY_POOL_PROVIDER=pool-provider-cci
+            export GCP_WORKLOAD_IDENTITY_PROVIDER=projects/${GCP_PROJECT_NUMBER}/locations/global/workloadIdentityPools/${WORKLOAD_IDENTITY_POOL_NAME}/providers/${WORKLOAD_IDENTITY_POOL_PROVIDER}
+
+            export GOOGLE_APPLICATION_CREDENTIALS=key.json
+            gcloud iam workload-identity-pools create-cred-config \
+              ${GCP_WORKLOAD_IDENTITY_PROVIDER} \
+              --service-account=${SERVICE_ACCOUNT_NAME} \
+              --output-file=${GOOGLE_APPLICATION_CREDENTIALS} \
+              --credential-source-file=.cci.token \
+              --credential-source-type=text
+
+            echo Y | gcloud auth login --cred-file=${GOOGLE_APPLICATION_CREDENTIALS} --no-launch-browser
+            gcloud config set project ${GCP_PROJECT_ID}
+            gcloud auth configure-docker asia-northeast1-docker.pkg.dev
+      - run:
+          name: build
+          command: |
+            docker build -t redash/latest .
+            docker tag redash/latest asia-northeast1-docker.pkg.dev/cabakuru-analytics/redash/redash:latest
+            docker push asia-northeast1-docker.pkg.dev/cabakuru-analytics/redash/redash:latest
+
+  deploy:
+    executor: google-sdk
+    steps:
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - checkout
+      - run:
+          name: auth
+          command: |
+            set -x
+            touch $BASH_ENV
+            source $BASH_ENV
+
+            # CircleCIに対して割り当てられた認証情報でgclodコマンドを叩く
+            echo ${CIRCLE_OIDC_TOKEN} > .cci.token
+
+            export GCP_PROJECT_ID=cabakuru-analytics
+            export GCP_PROJECT_NUMBER=791369243901
+
+            export SERVICE_ACCOUNT_NAME=cci-oidc-${CIRCLE_PROJECT_REPONAME:-x}@${GCP_PROJECT_ID}.iam.gserviceaccount.com
+            export WORKLOAD_IDENTITY_POOL_NAME=pool-cci
+            export WORKLOAD_IDENTITY_POOL_PROVIDER=pool-provider-cci
+            export GCP_WORKLOAD_IDENTITY_PROVIDER=projects/${GCP_PROJECT_NUMBER}/locations/global/workloadIdentityPools/${WORKLOAD_IDENTITY_POOL_NAME}/providers/${WORKLOAD_IDENTITY_POOL_PROVIDER}
+
+            export GOOGLE_APPLICATION_CREDENTIALS=key.json
+            gcloud iam workload-identity-pools create-cred-config \
+              ${GCP_WORKLOAD_IDENTITY_PROVIDER} \
+              --service-account=${SERVICE_ACCOUNT_NAME} \
+              --output-file=${GOOGLE_APPLICATION_CREDENTIALS} \
+              --credential-source-file=.cci.token \
+              --credential-source-type=text
+
+            echo Y | gcloud auth login --cred-file=${GOOGLE_APPLICATION_CREDENTIALS} --no-launch-browser
+            gcloud config set project ${GCP_PROJECT_ID}
+            gcloud auth configure-docker asia-northeast1-docker.pkg.dev
+
+            ./deploy.sh
+
 workflows:
   version: 2
   build:
@@ -177,3 +266,24 @@ workflows:
       - build-docker-image:
           requires:
             - hold
+
+  build_image:
+    triggers:
+      - schedule:
+          cron: "0 0 * * *"
+          filters:
+            branches:
+              only:
+                - kineca
+    jobs:
+      - build_image:
+          context: global
+
+  build_deploy:
+    jobs:
+      - deploy:
+          context: global
+          filters:
+            branches:
+              only:
+                - kineca
