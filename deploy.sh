@@ -61,4 +61,14 @@ gcloud beta run deploy redash \
     --cpu 4 \
     --memory 4Gi
 
+gcloud beta run jobs deploy redash \
+    --image asia-northeast1-docker.pkg.dev/cabakuru-analytics/redash/redash:latest \
+    --region $REGION \
+    --set-env-vars "REDIS_URL=$REDIS_URL,REDASH_COOKIE_SECRET=$REDASH_COOKIE_SECRET,REDASH_DATABASE_URL=$REDASH_DATABASE_URL,REDASH_LOG_LEVEL=${REDASH_LOG_LEVEL}" \
+    --service-account ${SERVICE_ACCOUNT} \
+    --vpc-connector $VPC_CONNECTOR \
+    --tasks 2 \
+    --cpu 4 \
+    --memory 4Gi
+
 #gcloud beta run domain-mappings create --service redash --domain redash.pato.today --region $REGION
