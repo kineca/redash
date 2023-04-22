@@ -69,6 +69,7 @@ gcloud beta run jobs deploy redash \
     --vpc-connector $VPC_CONNECTOR \
     --tasks 2 \
     --cpu 4 \
-    --memory 4Gi
+    --memory 4Gi \
+    --command=["./bin/docker-entrypoint", "worker"]
 
 #gcloud beta run domain-mappings create --service redash --domain redash.pato.today --region $REGION
