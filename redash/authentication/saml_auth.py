@@ -10,6 +10,7 @@ from saml2.client import Saml2Client
 from saml2.config import Config as Saml2Config
 from saml2.saml import NAMEID_FORMAT_TRANSIENT
 from saml2.sigver import get_xmlsec_binary
+import pprint
 
 
 logger = logging.getLogger("saml_auth")
@@ -57,8 +58,8 @@ def get_saml_client(org):
                 # Don't sign authn requests, since signed requests only make
                 # sense in a situation where you control both the SP and IdP
                 "authn_requests_signed": False,
-                "logout_requests_signed": True,
-                "want_assertions_signed": True,
+                "logout_requests_signed": False,
+                "want_assertions_signed": False,
                 "want_response_signed": False,
             }
         },
@@ -93,6 +94,8 @@ def get_saml_client(org):
         import json
         saml_settings["service"]["sp"].update(json.loads(sp_settings))
 
+    print('# saml_settings')
+    pprint.pprint(saml_settings)
     sp_config = Saml2Config()
     sp_config.load(saml_settings)
     sp_config.allow_unknown_attributes = True
@@ -108,10 +111,18 @@ def idp_initiated(org_slug=None):
         return redirect(url_for("redash.index", org_slug=org_slug))
 
     saml_client = get_saml_client(current_org)
+    print('# saml_client')
+    pprint.pprint(saml_client)
     try:
+        print('# request.form')
+        pprint.pprint(request.form)
+        print('# entity.BINDING_HTTP_POST')
+        pprint.pprint(entity.BINDING_HTTP_POST)
         authn_response = saml_client.parse_authn_request_response(
             request.form["SAMLResponse"], entity.BINDING_HTTP_POST
         )
+        print('# authn_response')
+        pprint.pprint(authn_response)
     except Exception:
         logger.error("Failed to parse SAML response", exc_info=True)
         flash("SAML login failed. Please try again later.")

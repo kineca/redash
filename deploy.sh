@@ -34,8 +34,8 @@ REDIS_PRIVATE_IP=$(get_redis_private_ip $REDIS_INSTANCE_NAME $REGION)
 # Set URLs and log level
 REDIS_URL="redis://$REDIS_PRIVATE_IP:6379/0"
 REDASH_DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${CLOUD_SQL_PRIVATE_IP}:5432/${POSTGRES_DB}"
-#REDASH_LOG_LEVEL=INFO
-REDASH_LOG_LEVEL=DEBUG
+REDASH_LOG_LEVEL=INFO
+#REDASH_LOG_LEVEL=DEBUG
 
 # Configure Docker client to authenticate with Artifact Registry
 gcloud config set project ${PROJECT_ID}
@@ -58,5 +58,5 @@ COMMON_ARGS=(
 )
 
 gcloud beta run jobs deploy redash-init "${COMMON_ARGS[@]}" --tasks 1 --command=./bin/docker-entrypoint,manage,database,create_tables --execute-now
-gcloud beta run deploy redash "${COMMON_ARGS[@]}" --platform managed --port 5000 --allow-unauthenticated --no-cpu-throttling --execution-environment=gen2 --timeout=120
-gcloud beta run jobs deploy redash "${COMMON_ARGS[@]}" --tasks 1 --task-timeout 1200 --command=./bin/docker-entrypoint,worker --execute-now
+gcloud beta run deploy redash "${COMMON_ARGS[@]}" --platform managed --port 5000 --allow-unauthenticated --cpu-throttling --execution-environment=gen2
+gcloud beta run jobs deploy redash "${COMMON_ARGS[@]}" --tasks 1 --command=./bin/docker-entrypoint,worker --execute-now
