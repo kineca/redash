@@ -53,8 +53,8 @@ COMMON_ARGS=(
   "--set-env-vars" "$ENV_VARS"
   "--service-account" "${SERVICE_ACCOUNT}"
   "--vpc-connector" "$VPC_CONNECTOR"
-  "--cpu" "2"
-  "--memory" "8Gi"
+  "--cpu" "1"
+  "--memory" "4Gi"
 )
 
 #gcloud beta run jobs deploy redash-init "${COMMON_ARGS[@]}" --tasks 1 --command=./bin/docker-entrypoint,manage,database,create_tables --execute-now
