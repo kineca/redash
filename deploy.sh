@@ -59,6 +59,5 @@ COMMON_ARGS=(
 
 #gcloud beta run jobs deploy redash-init "${COMMON_ARGS[@]}" --tasks 1 --command=./bin/docker-entrypoint,manage,database,create_tables --execute-now
 gcloud run deploy redash "${COMMON_ARGS[@]}" --platform managed --port 5000 --allow-unauthenticated --cpu-throttling --execution-environment=gen2 --cpu 2
-gcloud beta run jobs deploy redash-worker "${COMMON_ARGS[@]}" --tasks 1 --command=./bin/docker-entrypoint,worker --execute-now --cpu 1 --task-timeout=30m
-gcloud beta run jobs deploy redash-scheduler "${COMMON_ARGS[@]}" --tasks 1 --command=./bin/docker-entrypoint,scheduler --execute-now --cpu 1 --task-timeout=30m
-
+gcloud beta run jobs deploy redash-worker "${COMMON_ARGS[@]}" --tasks 1 --command=./bin/docker-entrypoint,worker --execute-now --cpu 1 --task-timeout=30m --max-retries=1
+gcloud beta run jobs deploy redash-scheduler "${COMMON_ARGS[@]}" --tasks 1 --command=./bin/docker-entrypoint,scheduler --execute-now --cpu 1 --task-timeout=30m --max-retries=1
