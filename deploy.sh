@@ -53,11 +53,13 @@ COMMON_ARGS=(
   "--set-env-vars" "$ENV_VARS"
   "--service-account" "${SERVICE_ACCOUNT}"
   "--vpc-connector" "$VPC_CONNECTOR"
+  "--vpc-egress" "all-traffic"
   "--cpu" "1"
   "--memory" "4Gi"
 )
 
 #gcloud beta run jobs deploy redash-init "${COMMON_ARGS[@]}" --tasks 1 --command=./bin/docker-entrypoint,manage,database,create_tables --execute-now
-gcloud beta run deploy redash "${COMMON_ARGS[@]}" --platform managed --port 5000 --allow-unauthenticated --cpu-throttling --execution-environment=gen2
-gcloud beta run jobs deploy redash-worker "${COMMON_ARGS[@]}" --tasks 1 --command=./bin/docker-entrypoint,worker --execute-now
-gcloud beta run jobs deploy redash-scheduler "${COMMON_ARGS[@]}" --tasks 1 --command=./bin/docker-entrypoint,scheduler --execute-now
+gcloud run deploy redash "${COMMON_ARGS[@]}" --platform managed --port 5000 --allow-unauthenticated --cpu-throttling --execution-environment=gen2
+gcloud run jobs deploy redash-worker "${COMMON_ARGS[@]}" --tasks 1 --command=./bin/docker-entrypoint,worker --execute-now
+gcloud run jobs deploy redash-scheduler "${COMMON_ARGS[@]}" --tasks 1 --command=./bin/docker-entrypoint,scheduler --execute-now
+``
