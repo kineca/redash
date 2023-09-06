@@ -54,7 +54,7 @@ COMMON_ARGS=(
   "--service-account" "${SERVICE_ACCOUNT}"
   "--vpc-connector" "$VPC_CONNECTOR"
   "--vpc-egress" "all-traffic"
-  "--cpu" "1"
+  "--cpu" "2"
   "--memory" "4Gi"
 )
 
